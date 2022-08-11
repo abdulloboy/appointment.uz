@@ -1,64 +1,84 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400"></a></p>
+API документация: https://documenter.getpostman.com/view/22785515/VUjQmjgj
 
-<p align="center">
-<a href="https://travis-ci.org/laravel/framework"><img src="https://travis-ci.org/laravel/framework.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+# Тестовое задание.
 
-## About Laravel
+# API (простое)
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Бизнес модель:
+Для получения медицинской услуги (услуг) пациент предварительно записывается на прием к врачу.  
+Запись на прием означат, что пациент потенциально может быть принят врачом в определенном месте и в определенное время.  
+Данная запись на прием описывается информационным ресурсом Appointment.   
+С момента, когда пациент и врач выразили согласие, статус записи на прием устанавливаемся в "Booked".  
+Это означает, что данный врач готов принять данного пациента в оговоренное время. В данном задаии это начальный статус ресурса Appointment.   
+В момент, когда пациент прибывает в лечебное учреждение, сотрудник регистратуры делает соответствующую отметку, что изменят статус ресурса Appointmen на "Arrived".
+Если пациент не прибывает к назначенному времени, сотрудник может изменить статус ресурса Appointmen на "Cancelled".
+После того, как встреча пациента с врачом фактически соостоялась, статус ресурса Appointmen меняет на "Fulfilled".  
+Не смотря на то, что имеется и другие статусы ресурса Appointmen, в данном заднии рассматриваются только указанные четыре ("Booked", "Arrived", "Cancelled" и "Fulfilled").  
+Запись на прием может осуществляться из различных информационных систем (например, в информационной системе конкретного лечебного учреждения или мобильном приложении для пациента).  
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Задание:
+- Необходимо создать сервис для создания, хранения и выдачи записей на прием.
+- Назначения должны храниться в базе данных (любая СУБД).
+- Сервис должен предоставлять API, работающее поверх HTTP в формате JSON.
+- Создание пользовательского интерфейса не требуется.
+- Авторизация запросов осуществляется токенами доступа, выдавемыми другим сервисом (Identity сервис, реализующий oAuth2.0).
 
-## Learning Laravel
+## Минимальные требования:
+- Достаточно следующуюх методов: 
+ - создание записи на прием (POST),
+ - получение записи на прием по идентификатору (GET)
+- GET with search parameters: получение записей на прием по участникам и/или организаци(`participant`), в которой создана запись на прием (`performer`)
+ - изменение статуса записи на прием (PATCH).
+- Валидация ресурса в соответствии со схемой (ресурс «Appointment»), описание приведено в прилагаемом файле (openapi.json).
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+## Подробнее:
+- Вы создаёте информационную систему appointment.ssv.uz, позволяющую собирать запси на примем, выдавать информацию по ним и изменять их статус.
+- Запись на прием представлено информационным ресурсом Appointment. 
+- Вам не надо создавать связанные ресурсы, такие как Пациент (Patinet), Врач (Practitioner), Организация (Organization). В ресурсе  Appointment содержатся только ссылки на них (через свойство `id`)
+- Ресурс  Appointment, с которым вы работаете, содержит:
+ - идентификатор, присваимого вашей системой `Appointment.id`. Однажды присвоенный идентификатор не может быть изменен
+ - идентификаторов, присвоенных другими системами `Appointment.identifier` (для возможности сопоставления между системами)
+ - Текущего статуса `Appointment.status`
+ - Участников записи на прием `Appointment.participant` (список из не менее чем двух объектов)
+ - Ссылка на организацию, в которой создается запись на прием `Appointment.performer` (фактически - это организация, в которой будет организована встреча)
+- Вам необходимо создать базу данных и информационную систему, предоставляющую REST API.
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains over 2000 video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### Бизнес-правила:
+ -Статус ресурса  Appointment при первоначальном создании может быть только "Booked"
+- Статус "Booked" может быть изменен на "Arrived" или "Cancelled".
+- Статус "Arrived" может быть изменен на "Cancelled" или "Fulfilled".
+- Статусы "Cancelled" и "Fulfilled" изменяться не могут. 
 
-## Laravel Sponsors
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the Laravel [Patreon page](https://patreon.com/taylorotwell).
+## Технические детали:
+- Требуемый функционал описан в формате [OpenAPI версия 3.0.2](https://spec.openapis.org/oas/v3.0.2), файл openapi.json (прилагается).
+- Содержание запросов/ответов, необхоимые методы и статусы ответов указаны в документации.
+- Тело ответа не может одновременно содержать атрибут «error» и какие либо данные о ресурсе.
+- Для рендеринга документации можно использовать любой IDE (может понадобиться установка соответствуюего плагина) или [редактор](https://editor.swagger.io/) 
+- Токен доступа представлят собой Bearer JWT токен.
+- В рамках данного задания валидацю токена доступа осуществлять не требуется, достаточно проверять наличие токена в заголовке запроса (Authorization: Bearer some-long-string)
 
-### Premium Partners
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Cubet Techno Labs](https://cubettech.com)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[Many](https://www.many.co.uk)**
-- **[Webdock, Fast VPS Hosting](https://www.webdock.io/en)**
-- **[DevSquad](https://devsquad.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[OP.GG](https://op.gg)**
-- **[WebReinvent](https://webreinvent.com/?utm_source=laravel&utm_medium=github&utm_campaign=patreon-sponsors)**
-- **[Lendio](https://lendio.com)**
+## Будет плюсом:
+- наличие unit-тестов.
+- описание архитектуры сервиса в виде текста и/или диаграмм.
+- контейнеризация проекта (наличие возможности поднять проект с помощью команды docker-compose up)
 
-## Contributing
+## Ответ:
+- Результат выполненной работы в виде ZIP архива необходимо отправить на e-mail: brkvksenia@gmail.com. Альтернативно - выслать ссылку на доступный репозиторий.
+- Архив (или репозиторий) должен содержать все необходимые файлы приложения, в частности, исходный код, данные (SQL Dump или иное, если имеется) и описание выполненной работы (readme.md).
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## Если что-то не понятно:
+При возникновении каких либо вопросов - решение принять самостоятельно, в readme.md  явно указать эти вопросы и принятые по ним решения.
 
-## Code of Conduct
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+## Что будет оцениваться
+- Выполнение задач, поставленных в задании
+- Качество кода (читаемость, нейминг, декларативность, в общем - code style)
+- Документирование реализованного решения
+- Выполнение раздела "Будет плюсом"
 
-## Security Vulnerabilities
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
 
-## License
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
